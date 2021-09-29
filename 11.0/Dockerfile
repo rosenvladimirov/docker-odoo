@@ -6,7 +6,9 @@ SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 # Generate locale bg_BG.UTF-8 for postgres and general locale data
 ENV LANG bg_BG.UTF-8
 ENV TZ=Europe/Sofia
-
+ENV PIPX_BIN_DIR=/usr/local/bin
+ENV PIPX_DEFAULT_PYTHON=python3
+ENV PATH=$PATH;/usr/local/bin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update && apt-get install -y locales && \
@@ -52,9 +54,10 @@ RUN apt-get update \
             python3-vobject \
             python3-watchdog \
             python3-xlrd \
+            python3-venv \
             xz-utils \
         && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb \
-        && echo 'f1689a1b302ff102160f2693129f789410a1708a wkhtmltox.deb' | sha1sum -c - \
+        && echo 'ae4e85641f004a2097621787bf4381e962fb91e1 wkhtmltox.deb' | sha1sum -c - \
         && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
         && rm -rf /var/lib/apt/lists/* wkhtmltox.deb
 
@@ -106,7 +109,7 @@ COPY ./etc/addons.conf /etc/odoo/
 RUN chown odoo /etc/odoo/odoo.conf \
     && mkdir -p /mnt/extra-addons \
     && chown -R odoo /mnt/extra-addons \
-    && mkdir -p /opt/odoo-11.0 \
+    && mkdir -p /opt/odoo-11.0/oca \
     && chown -R odoo /opt/odoo-11.0 \
     && mkdir -p /opt/odoo-addons/11.0 \
     && chown -R odoo /opt/odoo-addons/11.0 \
@@ -128,14 +131,19 @@ COPY ./python3/extra_requirements.txt /opt/odoo-11.0
 COPY ./keys/id_rsa /root/.ssh
 COPY ./keys/id_rsa.pub /root/.ssh
 COPY ./keys/known_hosts /root/.ssh
+COPY ./etc/oca.cfg /opt/odoo-11.0/oca
 
 #    && python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 /opt/odoo-addons/11.0 \
 
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts \
-    && cd /opt/odoo-11.0 \
-    && ./repositories.sh \
     && dpkg -i /usr/src/python3-*.deb \
     && pip3 install -r /opt/odoo-11.0/base_requirements.txt --ignore-installed \
+    && cd /opt/odoo-11.0 \
+    && ./repositories.sh \
+    && cd /opt/odoo-11.0 \
+    && pipx --suffix /usr/local/ install oca-maintainers-tools@git+https://github.com/OCA/maintainer-tools.git \
+    && cd /opt/odoo-11.0/oca \
+    && oca-clone-everything --target-branch 11.0 \
     && rm -f /root/.ssh/id_rsa \
     && rm -f /root/.ssh/id_rsa.pub \
     && rm -f /root/.ssh/known_hosts \
