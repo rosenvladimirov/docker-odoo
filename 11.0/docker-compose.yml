@@ -22,16 +22,6 @@ services:
       - RUNNING_ENV=dev
       - LOG_HANDLER=:INFO
 
-  # can be useful for dev when longpolling is required
-#  nginx:
-#    image: camptocamp/odoo-nginx:11.0-1.3.0
-#    ports:
-#      - 80:80
-#    depends_on:
-#      - odoo
-
 volumes:
   data-odoo:
   data-db:
-  # store pytest cache, allowing to use --lf or --ff (replay last or first failures)
-  data-odoo-pytest-cache:
