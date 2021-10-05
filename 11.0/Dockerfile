@@ -27,6 +27,7 @@ RUN apt-get update \
             cargo \
             rustc \
             ffmpeg \
+            glabels \
             python3-dev \
             libevent-dev \
             libfreetype6-dev \

@@ -37,9 +37,9 @@ def reverse_word(word):
 
 
 if __name__ == '__main__':
-    print(sys.argv)
     if len(sys.argv) != 5:
         print('==============HELP=================')
+        print(sys.argv)
         print('first argument: path for search')
         print('second argument: path for links')
         print('tri argument is config file')

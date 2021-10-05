@@ -1,9 +1,7 @@
-# Composition for development
-
-version: '2.01'
+version: '3.2'
 
 services:
-  odoo:
+  odoo-11.0:
     tty: true
     stdin_open: true
     build: ./
@@ -12,16 +10,29 @@ services:
     depends_on:
       - db
     volumes:
-      - "data-odoo:/data/odoo"
-      - "extra-addons-11.0:/mnt/extra-addons"
+      - type: bind
+        source: /opt/odoo-addons/11.0
+        target: /opt/odoo-addons/11.0
+      - type: volume
+        source: odoo-data-11.0
+        target: /var/lib/odoo
+      - type: volume
+        source: extra-addons-11.0
+        target: /mnt/extra-addons
     environment:
-      - DB_USER=odoo
-      - DB_PASS=odoo
-      - DB_NAME=odoodb
-      - ADMIN_PASSWD=123654@@
-      - RUNNING_ENV=dev
-      - LOG_HANDLER=:INFO
-
-volumes:
-  data-odoo:
-  data-db:
+      - DB_ENV_POSTGRES_PASSWORD=odoo11
+      - DB_ENV_POSTGRES_USER=odoo11
+      - DB_ENV_NAME=odoodb
+      - ODOO_ENV_ADMIN_PASSWD=admin-odoo11
+      - ODOO_ENV_LOG_HANDLER=:INFO
+  db:
+    image: postgres:10
+    container_name: db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=odoo11
+      - POSTGRES_PASSWORD=odoo11
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./docker-init:/docker-entrypoint-initdb.d/
