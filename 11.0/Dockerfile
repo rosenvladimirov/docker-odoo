@@ -11,6 +11,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV PIPX_BIN_DIR=/usr/local/bin
 ENV PIPX_DEFAULT_PYTHON=python3
 #ENV PATH=$PATH;/usr/local/bin
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 RUN apt-get update && apt-get install -y locales && \
     sed -i -e "s/# $LANG.*/$LANG UTF-8/" /etc/locale.gen && \
@@ -23,6 +24,9 @@ RUN apt-get update \
             openssh-client \
             build-essential \
             gcc \
+            cargo \
+            rustc \
+            ffmpeg \
             python3-dev \
             libevent-dev \
             libfreetype6-dev \
@@ -32,14 +36,24 @@ RUN apt-get update \
             libldap2-dev \
             libjpeg-dev \
             libpng-dev \
+            libssl-dev \
+            libxmlsec1-dev \
+            pkg-config \
             zlib1g-dev \
             git \
             ca-certificates \
             curl \
             dirmngr \
             fonts-noto-cjk \
+            fontconfig \
+            libx11-6 \
+            libxcb1 \
+            libxext6 \
+            libxrender1 \
+            xfonts-75dpi \
+            xfonts-base \
             gnupg \
-            libssl1.0-dev \
+            libcups2-dev \
             node-less \
             python3-pip \
             python3-babel \
@@ -57,11 +71,13 @@ RUN apt-get update \
             python3-xlrd \
             python3-venv \
             python3-openssl \
-            xz-utils \
-        && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb \
-        && echo 'f1689a1b302ff102160f2693129f789410a1708a wkhtmltox.deb' | sha1sum -c - \
-        && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
-        && rm -rf /var/lib/apt/lists/* wkhtmltox.deb
+            python3-requests \
+            python3-wheel \
+            python3-lxml \
+            python3-libxml2 \
+            python3-feedparser \
+            xz-utils
+
 
 # install latest postgresql-client
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
@@ -90,6 +106,12 @@ RUN echo "deb http://deb.nodesource.com/node_8.x bionic main" > /etc/apt/sources
     && apt-get install --no-install-recommends -y nodejs \
     && npm install -g rtlcss \
     && rm -rf /var/lib/apt/lists/*
+
+# Install wkhtmltox
+RUN curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb \
+    && echo 'f1689a1b302ff102160f2693129f789410a1708a wkhtmltox.deb' | sha1sum -c - \
+    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
+    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb
 
 # Install Odoo
 ENV ODOO_VERSION 11.0
@@ -140,6 +162,8 @@ COPY ./etc/oca.cfg /opt/odoo-11.0/oca
 
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts \
     && dpkg -i /usr/src/python3-*.deb \
+    && pip3 install setuptools_rust \
+    && pip3 install cryptography \
     && pip3 install -r /opt/odoo-11.0/base_requirements.txt --ignore-installed \
     && cd /opt/odoo-11.0 \
     && ./repositories.sh \
