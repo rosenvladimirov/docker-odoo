@@ -6,10 +6,11 @@ SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 # Generate locale bg_BG.UTF-8 for postgres and general locale data
 ENV LANG bg_BG.UTF-8
 ENV TZ=Europe/Sofia
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 ENV PIPX_BIN_DIR=/usr/local/bin
 ENV PIPX_DEFAULT_PYTHON=python3
-ENV PATH=$PATH;/usr/local/bin
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+#ENV PATH=$PATH;/usr/local/bin
 
 RUN apt-get update && apt-get install -y locales && \
     sed -i -e "s/# $LANG.*/$LANG UTF-8/" /etc/locale.gen && \
@@ -55,9 +56,10 @@ RUN apt-get update \
             python3-watchdog \
             python3-xlrd \
             python3-venv \
+            python3-openssl \
             xz-utils \
         && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb \
-        && echo 'ae4e85641f004a2097621787bf4381e962fb91e1 wkhtmltox.deb' | sha1sum -c - \
+        && echo 'f1689a1b302ff102160f2693129f789410a1708a wkhtmltox.deb' | sha1sum -c - \
         && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
         && rm -rf /var/lib/apt/lists/* wkhtmltox.deb
 
@@ -103,7 +105,8 @@ RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/od
 COPY ./src/python3*.deb /usr/src
 COPY ./bin/entrypoint.sh /
 COPY ./etc/odoo.conf /etc/odoo/
-COPY ./etc/addons.conf /etc/odoo/
+COPY ./etc/ready_full.conf /etc/odoo/
+COPY ./etc/main-addons.conf /etc/odoo/
 
 # Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
 RUN chown odoo /etc/odoo/odoo.conf \
@@ -141,7 +144,7 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts \
     && cd /opt/odoo-11.0 \
     && ./repositories.sh \
     && cd /opt/odoo-11.0 \
-    && pipx --suffix /usr/local/ install oca-maintainers-tools@git+https://github.com/OCA/maintainer-tools.git \
+    && pipx install oca-maintainers-tools@git+https://github.com/OCA/maintainer-tools.git \
     && cd /opt/odoo-11.0/oca \
     && oca-clone-everything --target-branch 11.0 \
     && rm -f /root/.ssh/id_rsa \

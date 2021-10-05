@@ -19,7 +19,7 @@ def check_dir(dir_addons, links=None, depends=None, main=None):
         if os.path.isdir(check_file_directory) and not (file in set(IGNORE)) and not os.path.islink(check_file_directory):
             manifest_path = os.path.join(check_file_directory, '__manifest__.py')
             if os.path.exists(manifest_path):
-                print(check_file_directory)
+                # print(check_file_directory)
                 links.append((dir_addons, file))
                 with open(manifest_path) as manifest:
                     data = ast.literal_eval(manifest.read())
@@ -32,7 +32,12 @@ def check_dir(dir_addons, links=None, depends=None, main=None):
     return links, depends
 
 
+def reverse_word(word):
+    return word[1] not in PRIORITY
+
+
 if __name__ == '__main__':
+    print(sys.argv)
     if len(sys.argv) != 5:
         print('==============HELP=================')
         print('first argument: path for search')
@@ -42,28 +47,31 @@ if __name__ == '__main__':
     if not os.path.isdir(sys.argv[1]) or not os.path.isdir(sys.argv[2]):
         print('Error: First and second param have to be folder')
 
-    filename_add = 'addons.conf'
+    filename_add = sys.argv[3]
     filename_main = 'main-addons.conf'
-    with open(os.path.join(sys.argv[2], filename_add)) as file:
+    with open(os.path.join(sys.argv[4], filename_add)) as file:
         fl = file.readlines()
         addons = set([line.rstrip() for line in fl])
     addons = list(addons)
     if not addons:
         lines = ADDONS
-    with open(os.path.join(sys.argv[2], filename_main)) as file:
+    with open(os.path.join(sys.argv[4], filename_main)) as file:
         fl = file.readlines()
         main_addons = set([line.rstrip() for line in fl])
     main_addons = list(main_addons)
     links, dependencies = check_dir(sys.argv[1], addons)
     addons += list(dependencies)
-    for link in links.sort(key=lambda t: t[1] in set(PRIORITY), reverse=True):
+    # print(addons)
+    links = sorted(links, key=reverse_word, reverse=True)
+    for link in links:
         source = os.path.join(link[0], link[1])
-        module = source.split(os.path.split(source)[-1])
-        if module in main_addons:
-            continue
-        if module not in addons:
-            continue
         target = os.path.join(sys.argv[2], link[1])
+        # print(source, target)
+        # print(link[1])
+        if link[1] in main_addons:
+            continue
+        if link[1] not in addons:
+            continue
         try:
             os.symlink(source, target)
         except FileExistsError:

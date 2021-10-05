@@ -101,3 +101,4 @@ pandas==1.1.4
 cachetools>=2.0.1
 #pdfminer.six
 pipx==0.16.4
+pyxb

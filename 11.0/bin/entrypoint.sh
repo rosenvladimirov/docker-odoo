@@ -12,6 +12,8 @@ fi
 : ${PORT:=${DB_PORT_5432_TCP_PORT:=5432}}
 : ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo11'}}}
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo11'}}}
+: ${PROFILE:=${ODOO_PROFILE:='ready_full.conf'}}
+: ${ADDONS:=${ODOO_ADDONS:='/opt/odoo-addons/11.0'}}
 
 DB_ARGS=()
 function check_config() {
@@ -27,6 +29,7 @@ check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
+python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $ODOO_PROFILE
 
 case "$1" in
     -- | odoo)
