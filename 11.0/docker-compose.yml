@@ -1,7 +1,7 @@
 version: '3.2'
 
 services:
-  odoo-11.0:
+  odoo-11.0-dev:
     tty: true
     stdin_open: true
     build: ./
@@ -36,3 +36,7 @@ services:
       - POSTGRES_DB=postgres
     volumes:
       - ./docker-init:/docker-entrypoint-initdb.d/
+
+volumes:
+  odoo-data-11.0:
+  extra-addons-11.0:
