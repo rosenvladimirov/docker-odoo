@@ -56,6 +56,11 @@ RUN apt-get update \
             gnupg \
             libcups2-dev \
             node-less \
+            libapache-pom-java \
+            libbcprov-java \
+            libcommons-lang3-java \
+            libcommons-parent-java \
+            default-jre-headless \
             python3-pip \
             python3-babel \
             python3-decorator \
@@ -126,6 +131,7 @@ RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/od
 
 # Copy entrypoint script and Odoo configuration file and precompiled deb packages
 COPY ./src/python3*.deb /usr/src
+COPY ./src/pdftk-java_3.2.2-1_all.deb /usr/src
 COPY ./bin/entrypoint.sh /
 COPY ./etc/odoo.conf /etc/odoo/
 COPY ./etc/ready_full.conf /etc/odoo/
@@ -163,6 +169,7 @@ COPY ./etc/oca.cfg /opt/odoo-11.0/oca
 
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts \
     && dpkg -i /usr/src/python3-*.deb \
+    && dpkg -i /usr/src/pdftk-java_3.2.2-1_all.deb \
     && pip3 install setuptools_rust \
     && pip3 install cryptography \
     && pip3 install -r /opt/odoo-11.0/base_requirements.txt --ignore-installed \

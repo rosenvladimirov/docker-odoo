@@ -112,3 +112,4 @@ imageio
 moviepy
 pystrich
 colour
+fdfgen
