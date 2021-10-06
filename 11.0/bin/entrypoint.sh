@@ -32,9 +32,7 @@ check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
-check_config "admin_passwd" "$ADMIN"
-check_config "log_handler" "['$LOGGER']"
-python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $ODOO_PROFILE
+python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $ODOO_PROFILE /etc/odoo
 
 case "$1" in
     -- | odoo)
