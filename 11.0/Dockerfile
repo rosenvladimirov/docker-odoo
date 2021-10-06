@@ -84,7 +84,6 @@ RUN apt-get update \
             python3-feedparser \
             xz-utils
 
-
 # install latest postgresql-client
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
         && GNUPGHOME="$(mktemp -d)" \
@@ -120,7 +119,20 @@ RUN curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releas
     && rm -rf /var/lib/apt/lists/* wkhtmltox.deb
 
 # Install Odoo
-ENV ODOO_VERSION 11.0
+ENV ODOO_VERSION=11.0 \
+    DB_HOST=db \
+    DB_PORT=5432 \
+    DB_NAME=odoodb \
+    DB_USER=odoo11 \
+    DB_PASSWORD=odoo11 \
+    ODOO_BASE_URL=http://localhost:8069 \
+    ODOO_REPORT_URL=http://localhost:8069 \
+    # the place where you put the data of your project (csv, ...)
+    ODOO_DATA_PATH=/var/lib/odoo \
+    DEMO=False \
+    ADDONS_PATH=/odoo/local-src,/odoo/src/addons \
+    OPENERP_SERVER=/etc/odoo.cfg
+
 ARG ODOO_RELEASE=20201204
 ARG ODOO_SHA=4878c5ec8cfcbdec10f90bd47d5ea677806d728d
 RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/odoo_${ODOO_VERSION}.${ODOO_RELEASE}_all.deb \
@@ -136,6 +148,7 @@ COPY ./bin/entrypoint.sh /
 COPY ./etc/odoo.conf /etc/odoo/
 COPY ./etc/ready_full.conf /etc/odoo/
 COPY ./etc/main-addons.conf /etc/odoo/
+COPY ./templates /etc/odoo/templates
 
 # Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
 RUN chown odoo /etc/odoo/odoo.conf \
@@ -153,7 +166,8 @@ VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 EXPOSE 8069 8071 8072
 
 # Set the default config file
-ENV ODOO_RC /etc/odoo/odoo.conf
+ENV ODOO_RC_FOLDER /etc/odoo
+ENV ODOO_RC $ODOO_RC_FOLDER/odoo.conf
 
 COPY ./bin/wait-for-psql.py /usr/local/bin/wait-for-psql.py
 COPY ./bin/repositories.sh /opt/odoo-11.0/repositories.sh
@@ -183,6 +197,10 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts \
     && rm -f /root/.ssh/id_rsa.pub \
     && rm -f /root/.ssh/known_hosts \
     && rm -f /usr/src/python-*.deb
+
+# grab gosu for easy step-down from root and dockerize to generate template and
+# wait on postgres
+RUN /install/gosu.sh && /install/dockerize.sh
 
 # Set default user when running the container
 USER odoo

@@ -10,17 +10,8 @@ fi
 # and pass them as arguments to the odoo process if not present in the config file
 : ${HOST:=${DB_PORT_5432_TCP_ADDR:='db'}}
 : ${PORT:=${DB_PORT_5432_TCP_PORT:=5432}}
-: ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo11'}}}
-: ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo11'}}}
-# set for scanner for symlinks
-: ${PROFILE:=${ODOO_PROFILE:='ready_full.conf'}}
-: ${ADDONS:=${ODOO_ADDONS:='/opt/odoo-addons/11.0'}}
-: ${$ODOO_CFG_FOLDER:=${ODOO_RC_FOLDER:='/etc/odoo'}}
-# set variables for odoo config file
-: ${DB_NAME:=${DB_ENV_NAME:='odoodb'}}}
-: ${ADMIN_PASSWD:=${ODOO_ENV_ADMIN_PASSWD:='admin-odoo11'}}}
-: ${LOGGER:=${ODOO_ENV_LOG_HANDLER:=':INFO'}}}
-: ${CONFIG_TARGET:=${ODOO_RC:='/etc/odoo/odoo.conf'}}
+: ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo'}}}
+: ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
 
 DB_ARGS=()
 function check_config() {
@@ -36,23 +27,6 @@ check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
-
-#Customise used modules
-python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $ODOO_PROFILE $ODOO_CFG_FOLDER
-
-# Create configuration file from the template
-TEMPLATES_DIR=$ODOO_CFG_FOLDER/templates
-if [ -e $TEMPLATES_DIR/openerp.cfg.tmpl ]; then
-  dockerize -template $TEMPLATES_DIR/openerp.cfg.tmpl:$CONFIG_TARGET
-fi
-if [ -e $TEMPLATES_DIR/odoo.cfg.tmpl ]; then
-  dockerize -template $TEMPLATES_DIR/odoo.cfg.tmpl:$CONFIG_TARGET
-fi
-
-if [ ! -f "/etc/odoo.cfg" ]; then
-  echo "Error: one of /templates/openerp.cfg.tmpl, /templates/odoo.cfg.tmpl, /etc/odoo.cfg is required"
-  exit 1
-fi
 
 case "$1" in
     -- | odoo)
