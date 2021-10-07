@@ -28,7 +28,6 @@ RUN apt-get update \
             rustc \
             ffmpeg \
             glabels \
-            python3-dev \
             libevent-dev \
             libfreetype6-dev \
             libxml2-dev \
@@ -61,6 +60,7 @@ RUN apt-get update \
             libcommons-lang3-java \
             libcommons-parent-java \
             default-jre-headless \
+            python3-dev \
             python3-pip \
             python3-babel \
             python3-decorator \
