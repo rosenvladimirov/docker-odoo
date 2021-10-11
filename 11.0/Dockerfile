@@ -122,7 +122,6 @@ RUN curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releas
 ENV ODOO_VERSION=11.0 \
     DB_HOST=db \
     DB_PORT=5432 \
-    DB_NAME=odoodb \
     DB_USER=odoo11 \
     DB_PASSWORD=odoo11 \
     ODOO_BASE_URL=http://localhost:8069 \
@@ -130,8 +129,11 @@ ENV ODOO_VERSION=11.0 \
     # the place where you put the data of your project (csv, ...)
     ODOO_DATA_PATH=/var/lib/odoo \
     DEMO=False \
-    ADDONS_PATH=/odoo/local-src,/odoo/src/addons \
-    OPENERP_SERVER=/etc/odoo.cfg
+    ADDONS_PATH=/opt/odoo-addons/11.0,/mnt/extra-addons \
+    # Set the default config file
+    ODOO_RC_FOLDER=/etc/odoo \
+    ODOO_RC=$ODOO_RC_FOLDER/odoo.conf \
+    ODOO_RC_TEMPLATE=/opt/odoo-templates/11.0
 
 ARG ODOO_RELEASE=20201204
 ARG ODOO_SHA=4878c5ec8cfcbdec10f90bd47d5ea677806d728d
@@ -148,7 +150,7 @@ COPY ./bin/entrypoint.sh /
 COPY ./etc/odoo.conf /etc/odoo/
 COPY ./etc/ready_full.conf /etc/odoo/
 COPY ./etc/main-addons.conf /etc/odoo/
-COPY ./templates /etc/odoo/templates
+#COPY ./templates /opt/odoo-templates/11.0
 
 # Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
 RUN chown odoo /etc/odoo/odoo.conf \
@@ -158,16 +160,15 @@ RUN chown odoo /etc/odoo/odoo.conf \
     && chown -R odoo /opt/odoo-11.0 \
     && mkdir -p /opt/odoo-addons/11.0 \
     && chown -R odoo /opt/odoo-addons/11.0 \
+    && mkdir -p /opt/docker-tools \
+#    && chown -R odoo /opt/docker-tools \
+    && mkdir -p /opt/odoo-templates/11.0 \
     && mkdir -p /root/.ssh
 
 VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 
 # Expose Odoo services
 EXPOSE 8069 8071 8072
-
-# Set the default config file
-ENV ODOO_RC_FOLDER /etc/odoo
-ENV ODOO_RC $ODOO_RC_FOLDER/odoo.conf
 
 COPY ./bin/wait-for-psql.py /usr/local/bin/wait-for-psql.py
 COPY ./bin/repositories.sh /opt/odoo-11.0/repositories.sh
@@ -178,6 +179,8 @@ COPY ./keys/id_rsa /root/.ssh
 COPY ./keys/id_rsa.pub /root/.ssh
 COPY ./keys/known_hosts /root/.ssh
 COPY ./etc/oca.cfg /opt/odoo-11.0/oca
+COPY ./bin/gosu.sh /opt/docker-tools
+COPY ./bin/dockerize.sh /opt/docker-tools
 
 #    && python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 /opt/odoo-addons/11.0 \
 
@@ -200,7 +203,11 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts \
 
 # grab gosu for easy step-down from root and dockerize to generate template and
 # wait on postgres
-RUN /install/gosu.sh && /install/dockerize.sh
+RUN chown -R odoo /opt/docker-tools/gosu.sh \
+    && chown -R odoo /opt/docker-tools/dockerize.sh \
+    && chmod +x /opt/docker-tools/gosu.sh \
+    && chmod +x /opt/docker-tools/dockerize.sh \
+    && /opt/docker-tools/gosu.sh && /opt/docker-tools/dockerize.sh
 
 # Set default user when running the container
 USER odoo

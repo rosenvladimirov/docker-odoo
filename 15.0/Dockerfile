@@ -1,5 +1,6 @@
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 MAINTAINER Odoo S.A. <info@odoo.com>
+ARG RELEASE $(lsb_release -cs)
 
 SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 
@@ -15,8 +16,12 @@ RUN apt-get update && \
         fonts-noto-cjk \
         gnupg \
         libssl-dev \
+        libsasl2-dev \
         node-less \
         npm \
+        build-essential \
+        libldap2-dev \
+        python3-dev \
         python3-num2words \
         python3-pdfminer \
         python3-pip \
@@ -30,6 +35,8 @@ RUN apt-get update && \
         python3-watchdog \
         python3-xlrd \
         python3-xlwt \
+        python3-openssl \
+        python3-psycopg2 \
         xz-utils \
     && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.buster_amd64.deb \
     && echo 'ea8277df4297afc507c61122f3c349af142f31e5 wkhtmltox.deb' | sha1sum -c - \
@@ -37,7 +44,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/* wkhtmltox.deb
 
 # install latest postgresql-client
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
     && GNUPGHOME="$(mktemp -d)" \
     && export GNUPGHOME \
     && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
@@ -46,11 +53,11 @@ RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main' > /etc/
     && gpgconf --kill all \
     && rm -rf "$GNUPGHOME" \
     && apt-get update  \
-    && apt-get install --no-install-recommends -y postgresql-client \
+    && apt-get install --no-install-recommends -y postgresql-client libpq-dev postgresql-server-dev-12 \
     && rm -f /etc/apt/sources.list.d/pgdg.list \
     && rm -rf /var/lib/apt/lists/*
 
-# Install rtlcss (on Debian buster)
+# Install rtlcss (on Debian bookworm)
 RUN npm install -g rtlcss
 
 # Install Odoo
@@ -61,7 +68,10 @@ RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/od
     && echo "${ODOO_SHA} odoo.deb" | sha1sum -c - \
     && apt-get update \
     && apt-get -y install --no-install-recommends ./odoo.deb \
-    && rm -rf /var/lib/apt/lists/* odoo.deb
+    && curl -o /tmp/requirements.txt -sSL https://raw.githubusercontent.com/odoo/odoo/15.0/requirements.txt \
+    && pip3 install -r /tmp/requirements.txt --ignore-installed \
+    && rm -rf /var/lib/apt/lists/* odoo.deb \
+    && rm /tmp/requirements.txt
 
 # Copy entrypoint script and Odoo configuration file
 COPY ./entrypoint.sh /
@@ -70,7 +80,13 @@ COPY ./odoo.conf /etc/odoo/
 # Set permissions and Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
 RUN chown odoo /etc/odoo/odoo.conf \
     && mkdir -p /mnt/extra-addons \
-    && chown -R odoo /mnt/extra-addons
+    && chown -R odoo /mnt/extra-addons \
+    && mkdir -p /opt/odoo-15.0/oca \
+    && chown -R odoo /opt/odoo-15.0 \
+    && mkdir -p /opt/odoo-addons/15.0 \
+    && chown -R odoo /opt/odoo-addons/15.0 \
+    && mkdir -p /root/.ssh
+
 VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 
 # Expose Odoo services
