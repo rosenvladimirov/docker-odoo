@@ -14,8 +14,10 @@ def check_dir(dir_addons, links=None, depends=None, main=None):
     if main is None:
         main = []
     dir_list = os.listdir(dir_addons)
+    dir_list.sort(key=lambda t: t in set(PRIORITY), reverse=True)
     for file in dir_list:
         check_file_directory = os.path.join(dir_addons, file)
+
         if os.path.isdir(check_file_directory) and not (file in set(IGNORE)) and not os.path.islink(check_file_directory):
             manifest_path = os.path.join(check_file_directory, '__manifest__.py')
             if os.path.exists(manifest_path):
@@ -32,8 +34,8 @@ def check_dir(dir_addons, links=None, depends=None, main=None):
     return links, depends
 
 
-def reverse_word(word):
-    return word[1] not in PRIORITY
+#def reverse_word(word):
+#    return word[1] in PRIORITY
 
 
 if __name__ == '__main__':
@@ -62,7 +64,7 @@ if __name__ == '__main__':
     links, dependencies = check_dir(sys.argv[1], addons)
     addons += list(dependencies)
     # print(addons)
-    links = sorted(links, key=reverse_word, reverse=True)
+    # links = sorted(links, key=reverse_word, reverse=True)
     for link in links:
         source = os.path.join(link[0], link[1])
         target = os.path.join(sys.argv[2], link[1])

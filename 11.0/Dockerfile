@@ -53,6 +53,9 @@ RUN apt-get update \
             xfonts-75dpi \
             xfonts-base \
             gnupg \
+            vim \
+            mc \
+            cups \
             libcups2-dev \
             node-less \
             libapache-pom-java \
@@ -81,6 +84,7 @@ RUN apt-get update \
             python3-wheel \
             python3-lxml \
             python3-libxml2 \
+            python3-cups \
             python3-feedparser \
             xz-utils
 
@@ -132,7 +136,7 @@ ENV ODOO_VERSION=11.0 \
     ADDONS_PATH=/opt/odoo-addons/11.0,/mnt/extra-addons \
     # Set the default config file
     ODOO_RC_FOLDER=/etc/odoo \
-    ODOO_RC=$ODOO_RC_FOLDER/odoo.conf \
+    ODOO_RC=/etc/odoo/odoo.conf \
     ODOO_RC_TEMPLATE=/opt/odoo-templates/11.0
 
 ARG ODOO_RELEASE=20201204
@@ -148,31 +152,33 @@ COPY ./src/python3*.deb /usr/src
 COPY ./src/pdftk-java_3.2.2-1_all.deb /usr/src
 COPY ./bin/entrypoint.sh /
 COPY ./etc/odoo.conf /etc/odoo/
-COPY ./etc/ready_full.conf /etc/odoo/
-COPY ./etc/main-addons.conf /etc/odoo/
-#COPY ./templates /opt/odoo-templates/11.0
 
 # Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
-RUN chown odoo /etc/odoo/odoo.conf \
-    && mkdir -p /mnt/extra-addons \
+RUN mkdir -p /mnt/extra-addons \
     && chown -R odoo /mnt/extra-addons \
     && mkdir -p /opt/odoo-11.0/oca \
     && chown -R odoo /opt/odoo-11.0 \
     && mkdir -p /opt/odoo-addons/11.0 \
     && chown -R odoo /opt/odoo-addons/11.0 \
     && mkdir -p /opt/docker-tools \
-#    && chown -R odoo /opt/docker-tools \
-    && mkdir -p /opt/odoo-templates/11.0 \
+    && chown odoo /etc/odoo/odoo.conf \
     && mkdir -p /root/.ssh
+
+#    && chown -R odoo /opt/docker-tools \
+#    && mkdir -p /opt/odoo-templates/11.0 \
+#    && mkdir -p /templates \
+
 
 VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 
 # Expose Odoo services
-EXPOSE 8069 8071 8072
+EXPOSE 8069 8072
 
 COPY ./bin/wait-for-psql.py /usr/local/bin/wait-for-psql.py
 COPY ./bin/repositories.sh /opt/odoo-11.0/repositories.sh
 COPY ./bin/make_symb_links.py /usr/local/bin/make_symb_links.py
+COPY ./bin/create_database.py /usr/local/bin/create_database.py
+
 COPY ./python3/base_requirements.txt /opt/odoo-11.0
 COPY ./python3/extra_requirements.txt /opt/odoo-11.0
 COPY ./keys/id_rsa /root/.ssh
@@ -181,6 +187,13 @@ COPY ./keys/known_hosts /root/.ssh
 COPY ./etc/oca.cfg /opt/odoo-11.0/oca
 COPY ./bin/gosu.sh /opt/docker-tools
 COPY ./bin/dockerize.sh /opt/docker-tools
+
+COPY ./templates/ /etc/odoo/templates/
+COPY ./etc/profiles/ /etc/odoo/
+COPY ./start-entrypoint.d/ /etc/odoo/start-entrypoint.d/
+# COPY ./etc/profiles/ready_full.conf /etc/odoo/
+COPY ./etc/main-addons.conf /etc/odoo/
+COPY ./etc/addons.conf /etc/odoo/
 
 #    && python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 /opt/odoo-addons/11.0 \
 

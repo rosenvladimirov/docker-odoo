@@ -5,6 +5,7 @@ set -e
 if [ -v PASSWORD_FILE ]; then
     PASSWORD="$(< $PASSWORD_FILE)"
 fi
+START_ENTRYPOINT_DIR=/etc/odoo/start-entrypoint.d
 
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
@@ -12,6 +13,7 @@ fi
 : ${PORT:=${DB_PORT_5432_TCP_PORT:=5432}}
 : ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo11'}}}
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo11'}}}
+: ${PGPASSWORD:=${DB_ENV_PGPASSWORD:='sergtsep'}}
 # set for scanner for symlinks
 : ${PROFILE:=${ODOO_PROFILE:='ready_full.conf'}}
 : ${ADDONS:=${ODOO_ADDONS:='/opt/odoo-addons/11.0'}}
@@ -21,7 +23,8 @@ fi
 : ${ADMIN_PASSWD:=${ODOO_ENV_ADMIN_PASSWD:='admin-odoo11'}}
 : ${LOGGER:=${ODOO_ENV_LOG_HANDLER:=':INFO'}}
 : ${CONFIG_TARGET:=${ODOO_RC:='/etc/odoo/odoo.conf'}}
-: ${CONFIG_TEMPLATE:=${ODOO_RC:='/opt/odoo-templates/11.0'}}
+: ${CONFIG_TEMPLATE:=${ODOO_RC_TEMPLATE:='/etc/odoo/templates'}}
+
 
 DB_ARGS=()
 function check_config() {
@@ -39,21 +42,19 @@ check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
 
 #Customise used modules
-python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $ODOO_PROFILE $ODOO_CFG_FOLDER
+python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $PROFILE $ODOO_CFG_FOLDER
 
 # Create configuration file from the template
-if [ -e $CONFIG_TEMPLATE/openerp.cfg.tmpl ]; then
-  dockerize -template $CONFIG_TEMPLATE/openerp.cfg.tmpl:$CONFIG_TARGET
-fi
 if [ -e $CONFIG_TEMPLATE/odoo.cfg.tmpl ]; then
   dockerize -template $CONFIG_TEMPLATE/odoo.cfg.tmpl:$CONFIG_TARGET
 fi
 
 if [ ! -f $CONFIG_TARGET ]; then
-  echo "Error: one of /templates/openerp.cfg.tmpl, /templates/odoo.cfg.tmpl, /etc/odoo/odoo.conf is required"
+  echo "Error: one of /etc/odoo/templates/odoo.cfg.tmpl, /etc/odoo/odoo.conf is required"
   exit 1
 fi
 
+cat /etc/odoo/odoo.conf
 case "$1" in
     -- | odoo)
         shift
@@ -61,11 +62,17 @@ case "$1" in
             exec odoo "$@"
         else
             wait-for-psql.py ${DB_ARGS[@]} --timeout=30
+            if [ -d "$START_ENTRYPOINT_DIR" ]; then
+              run-parts --verbose "$START_ENTRYPOINT_DIR"
+            fi
             exec odoo "$@" "${DB_ARGS[@]}"
         fi
         ;;
     -*)
         wait-for-psql.py ${DB_ARGS[@]} --timeout=30
+        if [ -d "$START_ENTRYPOINT_DIR" ]; then
+          run-parts --verbose "$START_ENTRYPOINT_DIR"
+        fi
         exec odoo "$@" "${DB_ARGS[@]}"
         ;;
     *)
