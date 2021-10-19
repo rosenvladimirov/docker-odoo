@@ -114,3 +114,7 @@ pystrich
 colour
 fdfgen
 selenium
+xmltodict
+requests_pkcs12
+geojson
+shapely
