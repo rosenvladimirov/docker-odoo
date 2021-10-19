@@ -19,7 +19,7 @@ fi
 # shellcheck disable=SC2164
 cd ./muk-it
 rr=("muk_dms" "muk_web" "muk_website" "muk_misc" "muk_quality" "muk_base")
-for i in "${rr[@]}"; do git clone -b 11.0 https://github.com/muk-it/${i}; done
+for i in "${rr[@]}"; do git clone -b 11.0 --single-branch https://github.com/muk-it/${i}; done
 cd ..
 
 if [ ! -d "$DIRECTORY" ]; then
@@ -29,7 +29,7 @@ fi
 # shellcheck disable=SC2164
 cd ./luc-demeyer
 rr=("noviat-apps")
-for i in "${rr[@]}"; do git clone -b 11.0 https://github.com/luc-demeyer/${i}; done
+for i in "${rr[@]}"; do git clone -b 11.0 --single-branch https://github.com/luc-demeyer/${i}; done
 cd ..
 
 if [ ! -d "$DIRECTORY" ]; then
@@ -39,7 +39,7 @@ fi
 # shellcheck disable=SC2164
 cd ./Openworx
 rr=("backend_theme")
-for i in "${rr[@]}"; do git clone -b 11.0 https://github.com/Openworx/${i}; done
+for i in "${rr[@]}"; do git clone -b 11.0 --single-branch https://github.com/Openworx/${i}; done
 cd ..
 
 if [ ! -d "$DIRECTORY" ]; then
@@ -49,5 +49,5 @@ fi
 # shellcheck disable=SC2164
 cd ./rosenvladimirov
 rr=("manufacture-reporting" "l10n-bulgaria" "intrastat-extrastat" "purchase-reporting" "stock-logistics-warehouse" "account-invoice-reporting" "stock-logistics-barcode" "sale-reporting" "account-analytic" "medical" "website" "stock-logistics-workflow" "maintenance" "stock-logistics-reporting" "manufacture" "survey" "geospatial" "account-payment" "server-ux" "product-attribute" "account-financial-reporting" "reporting-engine" "reporting-engine-new" "l10n_bg-locales" "partner-contact" "account-invoicing" "hr" "bank-payment" "purchase-workflow" "report-print-send" "stock-logistics-tracking" "fleet" "web" "sale-workflow" "product-variant" "bank-statement-import" "knowledge" "account-financial-tools" "currency")
-for i in "${rr[@]}"; do git clone -b 11.0 git@github.com:rosenvladimirov/${i}; done
+for i in "${rr[@]}"; do git clone -b 11.0 --single-branch git@github.com:rosenvladimirov/${i}; done
 cd ..
