@@ -124,10 +124,13 @@ RUN curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releas
 
 # Install Odoo
 ENV ODOO_VERSION=11.0 \
-    DB_HOST=db \
-    DB_PORT=5432 \
-    DB_USER=odoo11 \
-    DB_PASSWORD=odoo11 \
+    POSTGRES_USER=odoo11 \
+    POSTGRES_PASSWORD=odoo11 \
+    POSTGRES_SUPERUSER=oddo \
+    POSTGRES_SUPERPASSWORD=odoo11 \
+    DB_PORT_5432_TCP_ADDR=db \
+    DB_PORT_5432_TCP_PORT=5432 \
+    DB_ENV_NAME=odoodb \
     ODOO_BASE_URL=http://localhost:8069 \
     ODOO_REPORT_URL=http://localhost:8069 \
     # the place where you put the data of your project (csv, ...)

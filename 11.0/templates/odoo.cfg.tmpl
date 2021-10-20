@@ -2,12 +2,12 @@
 addons_path = {{ .Env.ADDONS_PATH }}
 data_dir = {{ .Env.ODOO_DATA_PATH }}
 ; auto_reload = False
-db_host = {{ .Env.DB_HOST }}
+db_host = {{ .Env.HOST }}
 ; db_name = {{ .Env.DB_NAME }}
-db_user = {{ .Env.DB_USER }}
-db_password = {{ .Env.DB_PASSWORD }}
-db_sslmode = {{ default .Env.DB_SSLMODE "prefer" }}
-; dbfilter = ^{{ default .Env.DB_FILTER .Env.DB_NAME }}$
+db_user = {{ .Env.USER }}
+db_password = {{ .Env.PASSWORD }}
+db_sslmode = {{ default .Env.DB_ENV_SSLMODE "prefer" }}
+; dbfilter = ^{{ default .Env.DB_ENV_FILTER .Env.DB_NAME }}$
 ; list_db = {{ default .Env.LIST_DB "False" }}
 ; admin_passwd = {{ default .Env.ADMIN_PASSWD "odoo11" }}
 ; db_maxconn = {{ default .Env.DB_MAXCONN "64" }}

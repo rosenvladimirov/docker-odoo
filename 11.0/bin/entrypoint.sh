@@ -13,7 +13,8 @@ START_ENTRYPOINT_DIR=/etc/odoo/start-entrypoint.d
 : ${PORT:=${DB_PORT_5432_TCP_PORT:=5432}}
 : ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo11'}}}
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo11'}}}
-: ${PGPASSWORD:=${DB_ENV_PGPASSWORD:='sergtsep'}}
+: ${SUPER_USER:=${DB_ENV_POSTGRES_SUPERUSER:=${POSTGRES_SUPERUSER:='odoo'}}}
+: ${SUPER_PASSWORD:=${DB_ENV_POSTGRES_SUPERPASSWORD:=${POSTGRES_SUPERPASSWORD:='odoo11'}}}
 # set for scanner for symlinks
 : ${PROFILE:=${ODOO_PROFILE:='ready_full.conf'}}
 : ${ADDONS:=${ODOO_ADDONS:='/opt/odoo-addons/11.0'}}
@@ -38,8 +39,12 @@ function check_config() {
 }
 check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
-check_config "db_user" "$USER"
-check_config "db_password" "$PASSWORD"
+check_config "db_user" "$SUPER_USER"
+check_config "db_password" "$SUPER_PASSWORD"
+
+# create superuser for database access
+echo "$HOST:$PORT:*:$SUPER_USER:$SUPER_PASSWORD" >> ~/.pgpass
+/bin/chmod 0600 ~/.pgpass
 
 #Customise used modules
 python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $PROFILE $ODOO_CFG_FOLDER
