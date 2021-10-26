@@ -116,5 +116,7 @@ fdfgen
 selenium
 xmltodict
 requests_pkcs12
+codicefiscale
 geojson
 shapely
+pyocclient

@@ -2,10 +2,10 @@
 addons_path = {{ .Env.ADDONS_PATH }}
 data_dir = {{ .Env.ODOO_DATA_PATH }}
 ; auto_reload = False
-db_host = {{ .Env.HOST }}
+db_host = {{ .Env.POSTGRES_HOST }}
 ; db_name = {{ .Env.DB_NAME }}
-db_user = {{ .Env.USER }}
-db_password = {{ .Env.PASSWORD }}
+db_user = {{ .Env.POSTGRES_USER }}
+db_password = {{ .Env.POSTGRES_PASSWORD }}
 db_sslmode = {{ default .Env.DB_ENV_SSLMODE "prefer" }}
 ; dbfilter = ^{{ default .Env.DB_ENV_FILTER .Env.DB_NAME }}$
 ; list_db = {{ default .Env.LIST_DB "False" }}

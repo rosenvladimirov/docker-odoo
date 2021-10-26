@@ -9,8 +9,8 @@ START_ENTRYPOINT_DIR=/etc/odoo/start-entrypoint.d
 
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
-: ${HOST:=${DB_PORT_5432_TCP_ADDR:='db'}}
-: ${PORT:=${DB_PORT_5432_TCP_PORT:=5432}}
+: ${HOST:=${DB_PORT_5432_TCP_ADDR:=${POSTGRES_HOST:='db'}}}
+: ${PORT:=${DB_PORT_5432_TCP_PORT:=${POSTGRES_PORT:=5432}}}
 : ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo11'}}}
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo11'}}}
 : ${SUPER_USER:=${DB_ENV_POSTGRES_SUPERUSER:=${POSTGRES_SUPERUSER:='odoo'}}}
@@ -47,7 +47,12 @@ echo "$HOST:$PORT:*:$SUPER_USER:$SUPER_PASSWORD" >> ~/.pgpass
 /bin/chmod 0600 ~/.pgpass
 
 #Customise used modules
-python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $PROFILE $ODOO_CFG_FOLDER
+if [ "$RUNNING_ENV" == 'prod' ] || [ "$RUNNING_ENV" == '' ]; then
+  python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 $ADDONS $PROFILE $ODOO_CFG_FOLDER
+fi
+if [ "$RUNNING_ENV" == 'dev' ]; then
+  python3 /usr/local/bin/make_symb_links.py /opt/dev/oodoo-11.0 $ADDONS $PROFILE $ODOO_CFG_FOLDER
+fi
 
 # Create configuration file from the template
 if [ -e $CONFIG_TEMPLATE/odoo.cfg.tmpl ]; then
