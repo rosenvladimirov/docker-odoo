@@ -315,6 +315,7 @@ upstream {{ $upstream_name_im }} {
 
 {{ if eq $https_method "redirect" }}
 server {
+	## Can be connected with "{{ $https_method }}" method
 	server_name {{ $host }};
 	{{ if $server_tokens }}
 	server_tokens {{ $server_tokens }};
@@ -346,6 +347,7 @@ server {
 {{ end }}
 
 server {
+	## Can be connected with "{{ $https_method }}" method
 	server_name {{ $host }};
 	{{ if $server_tokens }}
 	server_tokens {{ $server_tokens }};
@@ -463,6 +465,8 @@ server {
 {{ if or (not $is_https) (eq $https_method "noredirect") }}
 
 server {
+	## Can be connected with "{{ $https_method }}" method
+
 	server_name {{ $host }};
 	{{ if $server_tokens }}
 	server_tokens {{ $server_tokens }};
@@ -482,6 +486,48 @@ server {
 	include {{ printf "/etc/nginx/vhost.d/%s" $host }};
 	{{ else if (exists "/etc/nginx/vhost.d/default") }}
 	include /etc/nginx/vhost.d/default;
+	{{ end }}
+
+	client_max_body_size 0;
+	client_body_buffer_size 128k;
+
+	client_header_buffer_size 5120k;
+	large_client_header_buffers 16 5120k;
+
+	http2_max_field_size 16k;
+	http2_max_header_size 32k;
+
+	# increase proxy buffer size
+	proxy_buffers 16 64k;
+	proxy_buffer_size 128k;
+	proxy_read_timeout 300000;
+
+	# force timeouts if the back-end dies
+	proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+
+	#enable data compression
+	gzip on;
+	gzip_min_length 1100;
+	gzip_buffers 4 32k;
+	gzip_types text/plain text/xml text/css text/less application/x-javascript application/xml application/json application/javascript;
+	gzip_vary on;
+
+	{{ if eq $addition_tag "odoo" }}
+	# Only for odoo configuration
+	location /longpolling {
+		{{ if eq $proto "uwsgi" }}
+		include uwsgi_params;
+		uwsgi_pass {{ trim $proto }}://{{ trim $upstream_name_im }};
+		{{ else if eq $proto "fastcgi" }}
+		root   {{ trim $vhost_root }};
+		include fastcgi_params;
+		fastcgi_pass {{ trim $upstream_name_im }};
+		{{ else if eq $proto "grpc" }}
+		grpc_pass {{ trim $proto }}://{{ trim $upstream_name_im }};
+		{{ else }}
+		proxy_pass {{ trim $proto }}://{{ trim $upstream_name_im }};
+		{{ end }}
+	}
 	{{ end }}
 
 	location / {
@@ -511,6 +557,8 @@ server {
 
 {{ if (and (not $is_https) (exists "/etc/nginx/certs/default.crt") (exists "/etc/nginx/certs/default.key")) }}
 server {
+	## Can be connected with "{{ $https_method }}" method with certificate
+
 	server_name {{ $host }};
 	{{ if $server_tokens }}
 	server_tokens {{ $server_tokens }};

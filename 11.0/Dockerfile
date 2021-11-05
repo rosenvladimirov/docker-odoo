@@ -140,7 +140,7 @@ ENV ODOO_VERSION=11.0 \
     # Set the default config file
     ODOO_RC_FOLDER=/etc/odoo \
     ODOO_RC=/etc/odoo/odoo.conf \
-    ODOO_RC_TEMPLATE=/opt/odoo-templates/11.0
+    ODOO_RC_TEMPLATE=/etc/odoo/templates
 
 ARG ODOO_RELEASE=20201204
 ARG ODOO_SHA=4878c5ec8cfcbdec10f90bd47d5ea677806d728d
@@ -165,7 +165,8 @@ RUN mkdir -p /mnt/extra-addons \
     && chown -R odoo /opt/odoo-addons/11.0 \
     && mkdir -p /opt/docker-tools \
     && chown odoo /etc/odoo/odoo.conf \
-    && mkdir -p /root/.ssh
+    && mkdir -p /root/.ssh \
+    && mkdir -p /opt/odoo-helps
 
 #    && chown -R odoo /opt/docker-tools \
 #    && mkdir -p /opt/odoo-templates/11.0 \
@@ -193,13 +194,17 @@ COPY ./bin/dockerize.sh /opt/docker-tools
 
 COPY ./templates/ /etc/odoo/templates/
 COPY ./etc/profiles/ /etc/odoo/
-COPY ./start-entrypoint.d/ /etc/odoo/start-entrypoint.d/
+# COPY ./start-entrypoint.d/ /etc/odoo/start-entrypoint.d/
 # COPY ./etc/profiles/ready_full.conf /etc/odoo/
 COPY ./etc/main-addons.conf /etc/odoo/
 COPY ./etc/addons.conf /etc/odoo/
+COPY ./helps /opt/odoo-helps
+
+# Patch odoo
+RUN patch -p1 --dry-run < /opt/odoo-helps/basic_model.patch
+RUN patch -p1 --dry-run < /opt/odoo-helps/jquery.patch
 
 #    && python3 /usr/local/bin/make_symb_links.py /opt/odoo-11.0 /opt/odoo-addons/11.0 \
-
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts \
     && dpkg -i /usr/src/python3-*.deb \
     && dpkg -i /usr/src/pdftk-java_3.2.2-1_all.deb \

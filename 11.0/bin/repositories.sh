@@ -44,10 +44,20 @@ cd ..
 
 if [ ! -d "$DIRECTORY" ]; then
   # Control will enter here if $DIRECTORY exists.
+  mkdir ./cognichain
+fi
+# shellcheck disable=SC2164
+cd ./cognichain
+rr=("odoo-basic-extension")
+for i in "${rr[@]}"; do git clone -b 11.0 --single-branch https://github.com/cognichain/${i}; done
+cd ..
+
+if [ ! -d "$DIRECTORY" ]; then
+  # Control will enter here if $DIRECTORY exists.
   mkdir ./rosenvladimirov
 fi
 # shellcheck disable=SC2164
 cd ./rosenvladimirov
-rr=("manufacture-reporting" "l10n-bulgaria" "intrastat-extrastat" "purchase-reporting" "stock-logistics-warehouse" "account-invoice-reporting" "stock-logistics-barcode" "sale-reporting" "account-analytic" "medical" "website" "stock-logistics-workflow" "maintenance" "stock-logistics-reporting" "manufacture" "survey" "geospatial" "account-payment" "server-ux" "product-attribute" "account-financial-reporting" "reporting-engine" "reporting-engine-new" "l10n_bg-locales" "partner-contact" "account-invoicing" "hr" "bank-payment" "purchase-workflow" "report-print-send" "stock-logistics-tracking" "fleet" "web" "sale-workflow" "product-variant" "bank-statement-import" "knowledge" "account-financial-tools" "currency")
+rr=("server-tools" "manufacture-reporting" "l10n-bulgaria" "intrastat-extrastat" "purchase-reporting" "stock-logistics-warehouse" "account-invoice-reporting" "stock-logistics-barcode" "sale-reporting" "account-analytic" "medical" "website" "stock-logistics-workflow" "maintenance" "stock-logistics-reporting" "manufacture" "survey" "geospatial" "account-payment" "server-ux" "product-attribute" "account-financial-reporting" "reporting-engine" "reporting-engine-new" "l10n_bg-locales" "partner-contact" "account-invoicing" "hr" "bank-payment" "purchase-workflow" "report-print-send" "stock-logistics-tracking" "fleet" "web" "sale-workflow" "product-variant" "bank-statement-import" "knowledge" "account-financial-tools" "currency")
 for i in "${rr[@]}"; do git clone -b 11.0 --single-branch git@github.com:rosenvladimirov/${i}; done
 cd ..

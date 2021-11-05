@@ -43,8 +43,10 @@ check_config "db_user" "$SUPER_USER"
 check_config "db_password" "$SUPER_PASSWORD"
 
 # create superuser for database access
-echo "$HOST:$PORT:*:$SUPER_USER:$SUPER_PASSWORD" >> ~/.pgpass
-/bin/chmod 0600 ~/.pgpass
+if [ ! -e ~/.pgpass ]; then
+  echo "$HOST:$PORT:*:$SUPER_USER:$SUPER_PASSWORD" >> ~/.pgpass
+  /bin/chmod 0600 ~/.pgpass
+fi
 
 #Customise used modules
 if [ "$RUNNING_ENV" == 'prod' ] || [ "$RUNNING_ENV" == '' ]; then

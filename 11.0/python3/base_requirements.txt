@@ -120,3 +120,6 @@ codicefiscale
 geojson
 shapely
 pyocclient
+criticalpath
+jaraco.docker
+pysftp

@@ -1,0 +1,23 @@
+--- /opt/odoo-helps/basic_model.js	2021-02-02 19:33:38.487765373 +0200
++++ /usr/lib/python3/dist-packages/odoo/addons/web/static/src/js/views/basic/basic_model.js	2021-11-05 12:04:40.550597650 +0200
+@@ -3556,15 +3556,11 @@
+                     return;
+                 }
+                 if (result.warning) {
+-                    if (result.warning.action) {
+-                        self.do_action(result.warning.action, options);
+-                    } else {
+-                        self.trigger_up('warning', {
+-                            message: result.warning.message,
+-                            title: result.warning.title,
+-                            type: 'dialog',
+-                        });
+-                    }
++                    self.trigger_up('warning', {
++                        message: result.warning.message,
++                        title: result.warning.title,
++                        type: 'dialog',
++                    });
+                     record._warning = true;
+                 }
+                 if (result.domain) {

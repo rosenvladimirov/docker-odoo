@@ -63,6 +63,10 @@ if __name__ == '__main__':
     main_addons = list(main_addons)
     links, dependencies = check_dir(sys.argv[1], addons)
     addons += list(dependencies)
+    extra_addons_path = '/mnt/extra-addons'
+    extra_addons, dependencies = check_dir(extra_addons_path, addons)
+    main_addons += extra_addons
+    addons += list(dependencies)
     # print(addons)
     # links = sorted(links, key=reverse_word, reverse=True)
     for link in links:
